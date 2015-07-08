@@ -29,11 +29,13 @@ public func hasSuffix(expectedSuffix: String) -> Matcher<String> {
     return Matcher("has suffix \(describe(expectedSuffix))") {$0.hasSuffix(expectedSuffix)}
 }
 
-public func matchesPattern(pattern: String, options: NSRegularExpressionOptions = .allZeros) -> Matcher<String> {
+public func matchesPattern(pattern: String, options: NSRegularExpressionOptions = []) -> Matcher<String> {
     var error: NSError?
-    if let regularExpression = NSRegularExpression(pattern: pattern, options: options, error: &error) {
+    do {
+        let regularExpression = try NSRegularExpression(pattern: pattern, options: options)
         return matchesPattern(regularExpression)
-    } else {
+    } catch let error1 as NSError {
+        error = error1
         preconditionFailure(error!.localizedDescription)
     }
 }
@@ -43,6 +45,6 @@ public func matchesPattern(regularExpression: NSRegularExpression) -> Matcher<St
         (value: String) -> Bool in
         let error: NSError
         let range = NSMakeRange(0, (value as NSString).length)
-        return regularExpression.numberOfMatchesInString(value, options: .allZeros, range: range) > 0
+        return regularExpression.numberOfMatchesInString(value, options: [], range: range) > 0
     }
 }

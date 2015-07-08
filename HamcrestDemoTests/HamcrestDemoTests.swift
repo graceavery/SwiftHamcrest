@@ -12,11 +12,11 @@ class HamcrestDemoTests: XCTestCase {
 
     func testSuccess() {
         let x = 10
-        assertThat(x, equalTo(10))
+        assertThat(x, matcher: equalTo(10))
     }
 
     func testFailure() {
         let x = -10
-        assertThat(x, equalTo(10))
+        assertThat(x, matcher: equalTo(10))
     }
 }

@@ -27,7 +27,7 @@ func delegateMatching<T>(value: T, matcher: Matcher<T>, mismatchDescriber: Strin
 }
 
 func equalToWithoutDescription<T: Equatable>(expectedValue: T) -> Matcher<T> {
-    return describedAs(describe(expectedValue), equalTo(expectedValue))
+    return describedAs(describe(expectedValue), matcher: equalTo(expectedValue))
 }
 
 func isPlayground() -> Bool {
@@ -43,13 +43,13 @@ public func assertThat<T>(value: T, matcher: Matcher<T>,
     return reportResult(applyMatcher(matcher, toValue: value), file: file, line: line)
 }
 
-func applyMatcher<T>(matcher: Matcher<T>, # toValue: T) -> String? {
+func applyMatcher<T>(matcher: Matcher<T>, toValue: T) -> String? {
     let match = matcher.matches(toValue)
     switch match {
     case .Match:
         return nil
     case let .Mismatch(mismatchDescription):
-        return describeMismatch(toValue, matcher.description, mismatchDescription)
+        return describeMismatch(toValue, description: matcher.description, mismatchDescription: mismatchDescription)
     }
 }
 

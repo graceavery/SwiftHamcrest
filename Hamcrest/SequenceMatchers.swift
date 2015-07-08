@@ -1,13 +1,13 @@
 public func empty<T: CollectionType>() -> Matcher<T> {
-    return describedAs("empty", hasCount(0))
+    return describedAs("empty", matcher: hasCount(0))
 }
 
 public func hasCount<T: CollectionType>(matcher: Matcher<T.Index.Distance>) -> Matcher<T> {
     return Matcher("has count " + matcher.description) {
         (value: T) -> MatchResult in
-        let n = count(value)
-        return delegateMatching(n, matcher) {
-            return "count " + describeActualValue(n, $0)
+        let n = value.count
+        return delegateMatching(n, matcher: matcher) {
+            return "count " + describeActualValue(n, mismatchDescription: $0)
         }
     }
 }
@@ -23,7 +23,7 @@ public func everyItem<T, S: SequenceType where S.Generator.Element == T>(matcher
         (values: S) -> MatchResult in
         var mismatchDescriptions: [String?] = []
         for value in values {
-            switch delegateMatching(value, matcher, {
+            switch delegateMatching(value, matcher: matcher, mismatchDescriber: {
                 (mismatchDescription: String?) -> String? in
                 "mismatch: \(value)" + (mismatchDescription.map{" (\($0))"} ?? "")
             }) {
@@ -51,7 +51,7 @@ public func hasItem<T, S: SequenceType where S.Generator.Element == T>(matcher: 
     -> Matcher<S> {
 
     return Matcher("a sequence containing \(matcher.description)") {
-        (values: S) -> Bool in hasItem(matcher, values)
+        (values: S) -> Bool in hasItem(matcher, values: values)
     }
 }
 
@@ -68,7 +68,7 @@ private func hasItems<T, S: SequenceType where S.Generator.Element == T>(matcher
         (values: S) -> MatchResult in
         var missingItems = [] as [Matcher<T>]
         for matcher in matchers {
-            if !hasItem(matcher, values) {
+            if !hasItem(matcher, values: values) {
                 missingItems.append(matcher)
             }
         }
@@ -139,7 +139,7 @@ private func containsInAnyOrder<T, S: SequenceType where S.Generator.Element == 
                 }
                 unmatchedValues.append(value)
         }
-        var isMatch = remainingMatchers.isEmpty && unmatchedValues.isEmpty
+        let isMatch = remainingMatchers.isEmpty && unmatchedValues.isEmpty
         if !isMatch {
             return applyMatchers(remainingMatchers, values: unmatchedValues)
         } else {
@@ -161,14 +161,14 @@ public func containsInAnyOrder<T: Equatable, S: SequenceType where S.Generator.E
 }
 
 func applyMatchers<T, S: SequenceType where S.Generator.Element == T>
-    (matchers: [Matcher<T>], # values: S) -> MatchResult {
+    (matchers: [Matcher<T>], values: S) -> MatchResult {
 
     var mismatchDescriptions: [String?] = []
 
     var i = 0
     for (value, matcher) in Zip2(values, matchers) {
-        switch delegateMatching(value, matcher, {
-            "mismatch: " + describeMismatch(value, matcher.description, $0)
+        switch delegateMatching(value, matcher: matcher, mismatchDescriber: {
+            "mismatch: " + describeMismatch(value, description: matcher.description, mismatchDescription: $0)
         }) {
         case let .Mismatch(mismatchDescription):
             mismatchDescriptions.append(mismatchDescription)
